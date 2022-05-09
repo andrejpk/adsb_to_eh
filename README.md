@@ -8,6 +8,14 @@ The easiest way to use this is to get started from the [ADSB Exchange Getting St
 
 The ADSBx distribution runs an open TCP server on your network exposing a few variations of the data feed. This image uses port 30003 which supplies on line per event. This is paired with a simple Python program that pipes stdin into an Azure Event Hub, delimited by a line break. Then these are connected together by a simple pipe operation using a shell script.
 
+### Python setup
+
+Make sure python3 and pip3 and both installed. Once there in the project folder, run:
+
+```bash
+pip3 install -r requirements.txt
+```
+
 ### Configuring Event Hub
 
 Create an Azure Event Hub namespace and Azure Event Hub to receive the messages. In the Event Hub, open "Shared access policies" and create a new policy that has the "Send" claim. Once this is created, copy one of the connection strings (primary or secondary, either will work) and put that into the `.env` configuration file for the script. 
