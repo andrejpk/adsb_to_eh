@@ -57,7 +57,7 @@ def send_event_data_batch(payloads):
         event_data_batch.add(payload)
     producer.send_batch(event_data_batch)
 
-stats_interval=10
+stats_interval=30
 msg_count = 0
 start_time = datetime.now()
 next_status_update = start_time
@@ -73,6 +73,7 @@ def report_status():
         avg_msg_sec_total = (msg_count / elapsed_time_seconds) if elapsed_time_seconds > 0 else 0
         avg_msg_sec_report = (msg_count / report_time.total_seconds()) if report_time is not None else 0
         print(f'send-eh: message count:{msg_count}, batches: {batch_count}, msg/sec cur:{avg_msg_sec_report:.1f}, msg/sec total: {avg_msg_sec_total:.1f}')
+        sys.stdout.flush() 
         last_report_time = cur_time
         next_status_update = next_status_update + timedelta(seconds=stats_interval)
 
