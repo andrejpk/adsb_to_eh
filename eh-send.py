@@ -9,7 +9,7 @@ def show_usage():
     print("eh-send.py: Sends lines from stdin to Azure Event Hubs")
     print()
     print("Usage:")
-    print("  ./eh-send.py EVENT_HUB_NAME EVENT_HUB_CONNECTION_STRING")
+    print("  ./eh-send.py EVENT_HUB_CONNECTION_STRING EVENT_HUB_NAME")
     print()
     
 if len(sys.argv) < 3:
