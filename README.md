@@ -4,7 +4,7 @@ Sends live ADSB aircraft location data to Azure Event Hubs.
 
 ## Setup
 
-The easiest way to use this is to get started from the [ADSB Exchange Getting Started instructions](https://www.adsbexchange.com/how-to-feed/) using their [ADSBx Raspberry Pi image](https://www.adsbexchange.com/how-to-feed/). Once this is configured and running [you can verify this }y visiting their status page](https://www.adsbexchange.com/myip/) from the same outbound IP your sender is running on.
+The easiest way to use this is to get started from the [ADSB Exchange Getting Started instructions](https://www.adsbexchange.com/how-to-feed/) using their [ADSBx Raspberry Pi image](https://www.adsbexchange.com/how-to-feed/). Once this is configured and running [you can verify this by visiting their status page](https://www.adsbexchange.com/myip/) from the same outbound IP your sender is running on.
 
 The ADSBx distribution runs an open TCP server on your network exposing a few variations of the data feed. This image uses port 30003 which supplies on line per event. This is paired with a simple Python program that pipes stdin into an Azure Event Hub, delimited by a line break. Then these are connected together by a simple pipe operation using a shell script.
 
