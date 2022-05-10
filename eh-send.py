@@ -27,31 +27,59 @@ producer = EventHubProducerClient.from_connection_string(
     eventhub_name=EVENTHUB_NAME
 )
 
-def send_event_data_batch(payload):
+send_buffer=[]
+oldest_buffer_date=None
+max_buffer_size=50
+max_buffer_age=5 #seconds
+batch_count=0
+
+def queue_event_data(payload):
+    global send_buffer, oldest_buffer_date, max_buffer_size, max_buffer_age, batch_count
+    event_data=EventData(payload)
+    send_buffer.append(event_data)
+    if oldest_buffer_date == None: 
+        oldest_buffer_date = datetime.now()
+    buffer_age=(datetime.now() - oldest_buffer_date).total_seconds()
+    # Time to send?
+    if (buffer_age > max_buffer_age) or (len(send_buffer) > max_buffer_size):
+        send_event_data_batch(send_buffer)
+        batch_count = batch_count + 1
+        # reset the buffer
+        send_buffer = []
+        oldest_buffer_date=None
+
+
+def send_event_data_batch(payloads):
     # Without specifying partition_id or partition_key
     # the events will be distributed to available partitions via round-robin.
     event_data_batch = producer.create_batch()
-    event_data_batch.add(EventData(payload))
+    for payload in payloads:
+        event_data_batch.add(payload)
     producer.send_batch(event_data_batch)
 
-stats_interval=60
+stats_interval=10
 msg_count = 0
 start_time = datetime.now()
 next_status_update = start_time
+last_report_time = None
 
 def report_status():
-    global next_status_update
+    global next_status_update, last_report_time
     cur_time = datetime.now()
-    elapsed_time = cur_time - start_time
-    elapsed_time_seconds = elapsed_time.total_seconds()
-    avg_msg_sec_total = (msg_count / elapsed_time_seconds) if elapsed_time_seconds > 0 else 0
     if next_status_update <= cur_time:
+        report_time = (cur_time - last_report_time) if last_report_time is not None else None
+        elapsed_time = cur_time - start_time
+        elapsed_time_seconds = elapsed_time.total_seconds()
+        avg_msg_sec_total = (msg_count / elapsed_time_seconds) if elapsed_time_seconds > 0 else 0
+        avg_msg_sec_report = (msg_count / report_time.total_seconds()) if report_time is not None else 0
+        print(f'send-eh: message count:{msg_count}, batches: {batch_count}, msg/sec cur:{avg_msg_sec_report:.1f}, msg/sec total: {avg_msg_sec_total:.1f}')
+        last_report_time = cur_time
         next_status_update = next_status_update + timedelta(seconds=stats_interval)
-        print(f'send-eh: message count:{msg_count}, msg/sec: {avg_msg_sec_total:.1f}')
 
 # Process incoming lines
 for line in sys.stdin:
     report_status()
     line_stripped = line.replace('\n','')
     msg_count += 1
-    send_event_data_batch(line_stripped)
+    queue_event_data(line_stripped)
+
